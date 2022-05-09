@@ -9,9 +9,11 @@ stocks with CRSP Share Code 10 & 11 and Exchange Codes
 1 to 3 (NYSE, AMEX, and Nasdaq). Put and call options for standard contracts
 (100 shares) with 30 days maturity is recorded.
 
-@author: arman
+Common disclaimers apply.
 
-@author: arman
+Script by Arman Hassanniakalager GitHub @hkalager
+
+Last reviewed 05/05/2022
 """
 
 import pandas as pd
@@ -19,8 +21,9 @@ import numpy as np
 import wrds
 #from multiprocessing import Pool
 from datetime import datetime
-
-study_period=range(2001,2022)
+import os.path
+now=datetime.now()
+study_period=range(2001,now.year)
 progress_step=100
 
 db=wrds.Connection()
@@ -115,42 +118,36 @@ WHERE stdopd1996.days = 30
 ORDER BY stdopd1996.secid ASC  """
 
 for year_sel in range(study_period[0]-1,study_period[-1]+1):
-    print('data collection started for year '+str(year_sel))
-    t0=datetime.now()
-    sql_query_sel=sql_query.replace('1996',str(year_sel))
-    op_table=db.raw_sql(sql_query_sel,date_cols=['date'])
-    op_table=op_table.reset_index(drop=True)
-    t1=datetime.now()
-    dt=t1-t0
-    print('data collection completed for '+str(year_sel)+' after '+str(dt.seconds)+ ' seconds')
-    
-    included_crsp=np.zeros_like(op_table.index)
-    t0=datetime.now()
-    print('Identifying derivatives on CRSP for year '+str(year_sel)+' ...')
-    
-    # def check_in_crsp(s):
-    #     if op_table.cusip[s] in matched_cusip_list:
-    #         match_cusip=1
-    #     else:
-    #         match_cusip=0
-    #     return match_cusip 
-    # p=Pool()
-    # if __name__ == '__main__':
-    #     included_included_crsp=p.map(check_in_crsp,op_table.index)
-    
-    for s in op_table.index:
-        if op_table.cusip[s] in matched_cusip_list:
-            included_crsp[s]=1
-        else:
-            included_crsp[s]=0
-    
-    op_table['included_crsp']=included_crsp
-    op_table=op_table[op_table.included_crsp==1]
-    op_table=op_table.drop(columns='included_crsp')
-    op_table=op_table.sort_values(by=['secid','date'])
-    t1=datetime.now()            
-    dt=t1-t0
-    print('Matching derivatives with CRSP completed after '+str(dt.total_seconds()
-                                                                )+' secs')
     fl_lbl_crsp='Study_table_'+str(year_sel)+'_crsp.csv'
-    op_table.to_csv(fl_lbl_crsp,index=False)
+    if os.path.isfile(fl_lbl_crsp)==False:
+        print('data collection started for year '+str(year_sel))
+        t0=datetime.now()
+        sql_query_sel=sql_query.replace('1996',str(year_sel))
+        op_table=db.raw_sql(sql_query_sel,date_cols=['date'])
+        op_table=op_table.reset_index(drop=True)
+        t1=datetime.now()
+        dt=t1-t0
+        print('data collection completed for '+str(year_sel)+' after '+str(dt.seconds)+ ' seconds')
+        
+        included_crsp=np.zeros_like(op_table.index)
+        t0=datetime.now()
+        print('Identifying derivatives on CRSP for year '+str(year_sel)+' ...')
+        
+        for s in op_table.index:
+            if op_table.cusip[s] in matched_cusip_list:
+                included_crsp[s]=1
+            else:
+                included_crsp[s]=0
+        
+        op_table['included_crsp']=included_crsp
+        op_table=op_table[op_table.included_crsp==1]
+        op_table=op_table.drop(columns='included_crsp')
+        op_table=op_table.sort_values(by=['secid','date'])
+        t1=datetime.now()            
+        dt=t1-t0
+        print('Matching derivatives with CRSP completed after '+str(dt.total_seconds()
+                                                                    )+' secs')
+        
+        op_table.to_csv(fl_lbl_crsp,index=False)
+    else:
+        print('Matched OptionMetrics-CRSP dataset exists for year '+str(year_sel))

@@ -27,8 +27,8 @@ Specifically, you need active subscriptions to OptionMetrics and CRSP libraries 
 
 # Packages 
 The following packages in Python to run these scripts:
-– wrds
-– Numpy
-– Pandas
-– statsmodels
-– matplotlib
+- WRDS
+- Numpy
+- Pandas
+- statsmodels
+- matplotlib

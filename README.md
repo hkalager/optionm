@@ -2,7 +2,7 @@
 This repository conducts a buy-side analysis of call and put options on top 100 US firms by market cap. For a thorough introduction see the Wiki tab.
 
 # Warning:
-* There is no profitable strategy here! 
+* This is an exploratory study with no profitable strategy in sight.
 * All codes and analyses are subject to error.
 
 

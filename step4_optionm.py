@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed May 11 16:04:47 2022
+Created on Tue May 17 11:18:47 2022
 
 This script compares for top 100 stocks by Market Cap in each year
 degree to which stardard call and put options are gainful. The script links 
 processed data in previous step with CRSP market info and calculates some 
 descriptive stats. 
 
-All analysis are done for a buy-side interested in hedging/speculating by 
-buying call/put options.
+All analysis are done for a sell-side interested in hedging/speculating by 
+selling call/put options.
 
 Common disclaimers apply. 
 @author: Arman Hassanniakalager GitHub: https://github.com/hkalager
@@ -22,7 +22,7 @@ import pandas as pd
 import wrds
 import matplotlib.pyplot as plt
 from datetime import datetime,timedelta
-from statsmodels.stats.weightstats import ttest_ind
+#from statsmodels.stats.weightstats import ttest_ind
 import warnings
 warnings.filterwarnings("ignore")
 now=datetime.now()
@@ -82,11 +82,11 @@ for year_sel in study_period:
         if proc_db_sel.shape[0]>0:
             db_top=db_top.append(proc_db_sel)
     db_top['profit']=(db_top.cp_flag=='C').astype(int)*\
-        (db_top.real_forward_price-db_top.forward_price-db_top.premium)+\
+        (db_top.premium+db_top.forward_price-db_top.real_forward_price)+\
             (db_top.cp_flag=='P').astype(int)*\
-                (db_top.forward_price-db_top.real_forward_price-db_top.premium)
-    db_top['profit'][db_top['profit']<=-1*db_top['premium']]=\
-        -1*db_top['premium'][db_top['profit']<=-1*db_top['premium']]
+                (db_top.premium+db_top.real_forward_price-db_top.forward_price)
+    db_top['profit'][db_top['profit']>=db_top['premium']]=\
+        db_top['premium'][db_top['profit']>=db_top['premium']]
     db_top['%profit']=db_top['profit']/db_top['forward_price']
     call_tbl=db_top[db_top.cp_flag=='C']
     count_trading_days=np.unique(call_tbl.date).shape[0]
@@ -142,7 +142,7 @@ for year_sel in study_period:
     mu_out_money_put=np.mean(put_tbl[put_tbl.profit<0]['%profit'])
     put_out_money_mu.append(mu_out_money_put)
     
-    print('Completed analysing options for year '+str(year_sel)+' ...')
+    print('Sell-side analysis completed for year '+str(year_sel)+' ...')
 ## Store results in a DataFrame
 result_tbl=pd.DataFrame()
 result_tbl['year']=study_period
@@ -157,7 +157,6 @@ result_tbl['c %gain']=call_gain_mu
 
 mean_call_gain=(1+np.mean(call_gain_mu))**12-1
 
-
 result_tbl['c in-money ratio']=call_in_money_ratio
 result_tbl['c in-money gain']=call_in_money_mu
 
@@ -168,6 +167,7 @@ result_tbl['p implied/hist vol']=put_imp_to_hist_ratio
 result_tbl['p implied/forward vol']=np.power(put_forward_to_imp,-1)
 
 result_tbl['p %gain']=put_gain_mu
+mean_put_gain=(1+np.mean(put_gain_mu))**12-1
 
 result_tbl['p in-money ratio']=put_in_money_ratio
 result_tbl['p in-money gain']=put_in_money_mu
@@ -175,33 +175,10 @@ result_tbl['p in-money gain']=put_in_money_mu
 result_tbl['p out-money ratio']=put_out_money_ratio
 result_tbl['p out-money gain']=put_out_money_mu
 
-# Testing call against put for implied/historical and forward/implied
 
-test_Res1=ttest_ind(call_imp_to_hist_ratio, put_imp_to_hist_ratio)
-p_val_ttest1=test_Res1[1]
-
-test_Res2=ttest_ind(call_forward_to_imp, put_forward_to_imp)
-p_val_ttest2=test_Res2[1]
 
 ## Now plotting 
 
-# First plot basics – various ratios
-fig, ax = plt.subplots()
-X_axis=result_tbl['year']
-X_axis=pd.to_datetime(X_axis,format='%Y')
-ax.plot(X_axis,result_tbl['forward/hist vol'],'s-y',label='forward/historical')
-
-ax.plot(X_axis,(result_tbl['c implied/hist vol']+\
-                result_tbl['p implied/hist vol'])/2,
-        'o-c',label='implied/historical')
-ax.plot(X_axis,(result_tbl['c implied/forward vol']+\
-                result_tbl['p implied/forward vol'])/2,'p-g',label='implied/forward')
-ax.axhline(1,c='k',ls='--',lw=1)
-ax.set_xlabel('Time')
-ax.set_ylabel('Ratio')
-#ax.set_yscale('log')
-ax.set_title(' Various volatility ratios')
-ax.legend(loc='best',fontsize='small',ncol=1)
 
 # plot on % options in and out-of money
 fig, ax = plt.subplots()
@@ -216,7 +193,7 @@ ax.set_xlabel('Time')
 ax.set_ylabel('% total')
 #ax.set_yscale('log')
 ax.set_ylim(0,100)
-ax.set_title('% In/Out-of Money Options by Type')
+ax.set_title('Sell-side % In/Out-of Money Options by Type')
 ax.legend(loc='best',fontsize='small',ncol=2)
 
 # plot on how profitable are options
@@ -234,15 +211,17 @@ ax.plot(X_axis,result_tbl['p %gain']*100,'.-b',lw=2,label='all puts')
 
 ax.set_xlabel('Time')
 ax.set_ylabel('% return')
-ax.set_ylim(-5,15)
-ax.set_title('Average Monthly %Gain for Options by Type')
+ax.set_ylim(-15,5)
+ax.set_title('Sell-side Average Monthly %Gain for Options by Type')
 ax.legend(loc=0,fontsize='small',ncol=3)
+
 
 ## Report on the averages
 
-print('average annualised gain to BUY CALL is '+str(np.around(mean_call_gain*100,2))+'% for '
+print('average annualised gain to SELL CALL is '+str(np.around(mean_call_gain*100,2))+'% for '
       +str(study_period[0])+' - '+str(study_period[-1]))
 
 mean_put_gain=(1+np.mean(put_gain_mu))**12-1
-print('average annualised gain to BUY PUT is '+str(np.around(mean_put_gain*100,2))+'% for '
+print('average annualised gain to SELL PUT is '+str(np.around(mean_put_gain*100,2))+'% for '
       +str(study_period[0])+' - '+str(study_period[-1]))
+

@@ -1,8 +1,9 @@
 # optionm
-This repository conducts a buy-side analysis of call and put options on top 100 US firms by market cap. For a thorough introduction see the Wiki tab.
+This repository conducts buy- and sell- side analysis of call and put options on top 100 US firms by market cap. For a thorough introduction see the Wiki tab.
 
 # Warning:
 * This is an exploratory study with no profitable strategy in sight.
+* Provision of codes is not an investment advice.
 * All codes and analyses are subject to error.
 
 

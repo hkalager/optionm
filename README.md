@@ -35,11 +35,13 @@ Choices for `horizon` are `[10, 30, 60, 91, 122, 152, 182, 273, 365, 547,730]`
 
 – Analyse the data for a buy-side analysis for top `market_cap_count` firms by market capitalisation as:
 
-`a.analyse_buy(market_cap_count=100)`
+`[result_tbl = ] a.analyse_buy(market_cap_count=100)`
 
 – Analyse the data for a sell-side analysis for top `market_cap_count` firms by market capitalisation as:
 
-`a.analyse_sell(market_cap_count=100)`
+`[result_tbl = ] a.analyse_sell(market_cap_count=100)`
+
+*result_tbl* is a record of all findings in buy/sell side analysis as a DataFrame. 
  
 It is suggested that you replicate this process for different maturity periods (e.g. 30, 60, 91, 182, 365) to see the figures as in Wiki tab. 
 

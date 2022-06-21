@@ -9,9 +9,39 @@ This repository conducts buy- and sell- side analysis of call and put options on
 
 # Replication:
 
-In order to replicate the results you need to run the py scripts in Python. The steps are identified in file names as "step1_XXX.py", "step2_XXX.py" et cetra. Each file is accompanied by the necessary guidance within the script. 
+– In a terminal window install the requirements as:
 
-Make sure you have imported WRDS package into Python before runnning the scripts. 
+` pip install -r requirements.txt`
+
+– In Python environment import the OptionM module as:
+
+` from optionm_module import OptionM as om`
+
+  You will be asked to enter your credentials for accessing WRDS at this stage.
+
+– Specify the module using `study_period` and `horizon` as:
+
+` a=om(tudy_period=range(2001,now.year-1),horizon=91,progress=100)`
+
+Choices for `horizon` are `[10, 30, 60, 91, 122, 152, 182, 273, 365, 547,730]`
+
+– Obtain the necessary OptionMetrics record matched with CRSP through:
+
+` a.step1_crsp()`
+
+– Process the data to generate different proxies of volatitlity matched with each record as:
+
+`a.step2_proc()`
+
+– Analyse the data for a buy-side analysis for top `market_cap_count` firms by market capitalisation as:
+
+`a.analyse_buy(market_cap_count=100)`
+
+– Analyse the data for a sell-side analysis for top `market_cap_count` firms by market capitalisation as:
+
+`a.analyse_sell(market_cap_count=100)`
+ 
+It is suggested that you replicate this process for different maturity periods (e.g. 30, 60, 91, 182, 365) to see the figures as in Wiki tab. 
 
 # Dataset:
 

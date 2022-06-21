@@ -3,29 +3,37 @@
 """
 Created on Thu May  5 10:06:39 2022
 
-This script includes a function to be called in the second
-stage of processing records in OptionMetrics dataset. 
+This script includes:
+    – a function to be called in parallel for the second
+    stage of processing records in OptionMetrics dataset. 
 
 Common disclaimers apply.
 
 Script by Arman Hassanniakalager GitHub @hkalager
 
-Last reviewed 05/05/2022
+Last reviewed 17/06/2022
 """
 
 import pandas as pd
 import numpy as np
 from datetime import datetime,timedelta
 from os.path import isfile
+import warnings
+warnings.filterwarnings("ignore")
 
-def gen_db(year_sel,progress_step=100):
-    flname=fl_lbl_crsp='Study_table_'+str(year_sel)+'_proc.csv'
+
+
+def gen_db(year_sel,progress_step=100,horizon=60):
+    months_horizon=horizon//30
+    months_horizon=months_horizon%12
+    yr_horizon=horizon//365
+    flname='Study_table_'+str(year_sel)+'_'+str(horizon)+'_proc.csv'
     if isfile(flname)==False:
         db_col_all=pd.DataFrame()
         print('data processing started for year '+str(year_sel))
-        fl_lbl_crsp_last='Study_table_'+str(year_sel-1)+'_crsp.csv'
-        fl_lbl_crsp='Study_table_'+str(year_sel)+'_crsp.csv'
-        fl_lbl_crsp_next='Study_table_'+str(year_sel+1)+'_crsp.csv'
+        fl_lbl_crsp_last='Study_table_'+str(year_sel-1)+'_'+str(horizon)+'_crsp.csv'
+        fl_lbl_crsp='Study_table_'+str(year_sel)+'_'+str(horizon)+'_crsp.csv'
+        fl_lbl_crsp_next='Study_table_'+str(year_sel+1)+'_'+str(horizon)+'_crsp.csv'
         study_tbl_last=pd.read_csv(fl_lbl_crsp_last)
         db_col_all=db_col_all.append(study_tbl_last)
         study_tbl=pd.read_csv(fl_lbl_crsp)  # This is the main table
@@ -35,8 +43,8 @@ def gen_db(year_sel,progress_step=100):
         db_col_all=db_col_all.append(study_tbl_next)
         if type(db_col_all.iloc[0,2])==str:
             db_col_all['date']=pd.to_datetime(db_col_all['date'])
-        db_col=db_col_all[(db_col_all['date']>=pd.Timestamp(year_sel-1, 10, 1))]
-        db_col=db_col[(db_col['date']<pd.Timestamp(year_sel+1, 3, 1))]
+        db_col=db_col_all[(db_col_all['date']>=pd.Timestamp(year_sel-yr_horizon-1, 12-months_horizon-1, 1))]
+        db_col=db_col[(db_col['date']<pd.Timestamp(year_sel+yr_horizon+1, months_horizon+1, 1))]
         db_col=db_col.reset_index(drop=True)
         db_col=db_col.sort_values(by=['date','secid'])
         
@@ -50,8 +58,8 @@ def gen_db(year_sel,progress_step=100):
             sel_asset=int(study_tbl['secid'][s])
             sel_date=study_tbl.date[s]
             cp_flag=study_tbl.cp_flag[s]
-            hist_start=sel_date-timedelta(days=30)
-            forward_date=sel_date+timedelta(days=30)
+            hist_start=sel_date-timedelta(days=horizon)
+            forward_date=sel_date+timedelta(days=horizon)
             mini_tbl=db_col[db_col.secid==sel_asset]
             hist_cond=np.logical_and(mini_tbl.secid==sel_asset,
                                      np.logical_and(mini_tbl.date>=hist_start,

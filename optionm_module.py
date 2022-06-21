@@ -10,7 +10,7 @@ Current module created on Thu Jun 16 14:14:03 2022
 Common disclaimers apply. 
 @author: Arman Hassanniakalager GitHub: https://github.com/hkalager
 
-Last review: 20/06/2022
+Last review: 21/06/2022
 """
 import pandas as pd
 import numpy as np
@@ -67,7 +67,7 @@ class OptionM:
     db=wrds.Connection()
     print('Connection established to WRDS ...')
     now=datetime.now()
-    __version__='1.0.4'
+    __version__='1.0.5'
     def __init__(self,study_period=range(2001,now.year-1),horizon=91,progress=100):
         
         # Check study period entered 
@@ -714,7 +714,6 @@ class OptionM:
         print('average annualised gain to SELL CALL is '+str(np.around(mean_call_gain*100,2))+'% for '
               +str(study_period[0])+' - '+str(study_period[-1]))
 
-        mean_put_gain=(1+np.mean(put_gain_mu))**12-1
         print('average annualised gain to SELL PUT is '+str(np.around(mean_put_gain*100,2))+'% for '
               +str(study_period[0])+' - '+str(study_period[-1]))
         print('The results are stored in a DataFrame and returned with this method')
